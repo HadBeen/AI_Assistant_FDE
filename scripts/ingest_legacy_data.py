@@ -70,10 +70,10 @@ engine = create_engine(
 with engine.connect() as conn:
     print("engine connected")
 
-# # 4. Ingest data into the messy table name
-# table_name = 'TBL_SC_FLEET_HIST_RAW'
-# print(f"Ingesting into {table_name}. This may take a minute...")
+# 4. Ingest data into the messy table name
+table_name = 'TBL_SC_FLEET_HIST_RAW'
+print(f"Ingesting into {table_name}. This may take a minute...")
 
-# df_legacy.to_sql(table_name, engine, if_exists='replace', index=False, schema='dbo',chunksize=1000)
+df_legacy.to_sql(table_name, engine, if_exists='replace', index=False, schema='dbo',chunksize=1000)
 
-# print("Legacy data ingestion complete!")
+print("Legacy data ingestion complete!")
