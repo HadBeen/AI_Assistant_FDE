@@ -79,8 +79,14 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 
 existing_indexes = pc.list_indexes().names()
 
-print(existing_indexes)
-
+if INDEX_NAME in existing_indexes:
+    desc = pc.describe_index(INDEX_NAME)
+    if desc.dimension != TARGET_DIMENSION:
+        print("dimension mismatch")
+        pc.delete_index(INDEX_NAME)
+        existing_indexes = [name for name in existing_indexes if name != INDEX_NAME]
+        
+        
 
     
     
