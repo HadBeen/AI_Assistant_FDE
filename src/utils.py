@@ -4,7 +4,7 @@ from pathlib import Path
 
 from langchain_openai import AzureChatOpenAI,AzureOpenAIEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 
 
 
@@ -15,7 +15,7 @@ def setup_env() -> Path:
         env_file = folder / ".env"
         if env_file.exists():
             load_dotenv(env_file, override=True)
-            return env_file
+            return folder  
     raise FileNotFoundError(f".env not found in {here} or {here.parent}")
 
 def embedding_model_mode(EMBEDDINGS_MODEL_MODE) :

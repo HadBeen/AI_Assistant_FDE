@@ -8,30 +8,27 @@ import pandas as pd
 import pypdf
 
 from pinecone import Pinecone,ServerlessSpec
-from langchain_openai import AzureChatOpenAI,AzureOpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import MarkdownHeaderTextSplitter,RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-from openai import AzureOpenAI
+from src.utils import embedding_model_mode ,setup_env
 
 
 # disable windowns symlink warnings
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"]="true"
 
-# path set up
-script_dir = Path(__file__).resolve().parent
-project_root = script_dir.parent
-load_dotenv(project_root/".env")
+#env and paths setup
+project_root = setup_env()
+cache_dir = project_root/'data'/'cache'
+policy_dir = project_root / "data" / "policy"
 
-
+#pinecone key
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 if not PINECONE_API_KEY:
     raise ValueError("Missing PINECONE API KEY in .env file")
 
 # clean data production 
-cache_dir = project_root/'data'/'cache'
 cache_dir.mkdir(parents=True,exist_ok=True)
 HASH_CACHE_FILE = cache_dir/"ingestion_hash_cache.json"
 
@@ -47,31 +44,7 @@ if HASH_CACHE_FILE.exists():
 # embedding config
 EMBEDDINGS_MODEL_MODE = os.getenv("EMBEDDINGS_MODEL_MODE","local").strip().upper()
 
-if EMBEDDINGS_MODEL_MODE == "OPENAI":
-    print("MODE : cloud openAI embedding")
-
-    embeddings = AzureOpenAIEmbeddings(
-        azure_deployment = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT","text-embedding-3-small"),
-        openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION"),
-    )
-    INDEX_NAME = 'fde-sop-index-openai'
-    TARGET_DIMENSION = 1536
-    try :
-        vec = embeddings.embed_query('test')
-        print(f"CONNECTED : {len(vec)}")
-    except Exception as e:
-        print(f"azure openai connection failed : {e}")
-    
-else:
-    print("MODE : local embedding")
-    
-    local_model_target = os.getenv("LOCAL_EMBEDDING_MODEL")
-    embeddings = HuggingFaceEmbeddings(
-        model_name = local_model_target ,
-        model_kwargs={"device":"cpu"}
-    )
-    INDEX_NAME = 'fde-sop-index-openai'
-    TARGET_DIMENSION =1024
+embeddings,INDEX_NAME,TARGET_DIMENSION = embedding_model_mode(EMBEDDINGS_MODEL_MODE)
     
 #pinecone
 print("connecting to Pinecone ....")
@@ -164,7 +137,6 @@ def parse_and_chunk_document(doc_path:Path) -> list[Document]:
 # ==========================================
 # 5. INCREMENTAL PIPELINE WITH BATCHING
 # ==========================================
-policy_dir = project_root / "data" / "policy"
 target_patterns = ["*.md", "*.txt", "*.pdf", "*.csv", "*.xlsx"]
 current_files = {}
 for pattern in target_patterns:
