@@ -104,7 +104,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.caption(f"Session Token: `{st.session_state.thread_id[:8]}...`")
-    st.markdown(f"**Reasoning Architecture:** `{os.getenv('Agent_llm', 'DEEPSEEK')}`")
+    st.markdown(f"**Reasoning Architecture:** `{os.getenv('Agent_llm', 'OPENAI')}`")
     
     st.markdown("---")
     if st.button("🗑️ Purge Dispatch Workspace Session", use_container_width=True):
